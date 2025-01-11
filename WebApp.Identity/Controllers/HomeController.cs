@@ -1,4 +1,7 @@
 using System.Diagnostics;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebApp.Identity.Models;
@@ -22,6 +25,36 @@ namespace WebApp.Identity.Controllers
         }
 
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(LoginModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByNameAsync(model.UserName);
+
+                if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+                {
+                    var identity = new ClaimsIdentity("cookies");
+                    identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id));
+                    identity.AddClaim(new Claim(ClaimTypes.Name, user.UserName));
+
+                    await HttpContext.SignInAsync("cookies", new ClaimsPrincipal(identity));
+
+                    return RedirectToAction("About");
+                }
+
+                ModelState.AddModelError("", "Usuário ou Senha Invalida.");
+            }
+
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Login()
         {
             return View();
         }
@@ -52,6 +85,19 @@ namespace WebApp.Identity.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Register()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult Success()
         {
             return View();
         }
