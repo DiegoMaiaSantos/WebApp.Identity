@@ -12,12 +12,15 @@ namespace WebApp.Identity.Controllers
     {
         private readonly UserManager<MyUser> _userManager;
         private readonly IUserClaimsPrincipalFactory<MyUser> _userClaimsPrincipalFactory;
+        private readonly SignInManager<MyUser> _signInManager;
 
         public HomeController(UserManager<MyUser> userManager, 
-            IUserClaimsPrincipalFactory<MyUser> userClaimsPrincipalFactory)
+            IUserClaimsPrincipalFactory<MyUser> userClaimsPrincipalFactory,
+            SignInManager<MyUser> signInManager)
         {
             _userManager = userManager;
             _userClaimsPrincipalFactory = userClaimsPrincipalFactory;
+            _signInManager = signInManager;
         }
 
         public IActionResult Index()

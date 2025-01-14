@@ -24,6 +24,8 @@ builder.Services.AddDbContext<MyUserDbContext>(
 builder.Services.AddIdentity<MyUser, IdentityRole>(options => { })
     .AddEntityFrameworkStores<MyUserDbContext>();
 
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<MyUser>, MyUserClaimsPrincipalFactory>();
+
 builder.Services.ConfigureApplicationCookie(options => 
     options.LoginPath = "/Home/Login");
 
