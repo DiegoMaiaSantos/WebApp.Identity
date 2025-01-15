@@ -22,9 +22,14 @@ builder.Services.AddDbContext<MyUserDbContext>(
 );
 
 builder.Services.AddIdentity<MyUser, IdentityRole>(options => { })
-    .AddEntityFrameworkStores<MyUserDbContext>();
+    .AddEntityFrameworkStores<MyUserDbContext>()
+    .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IUserClaimsPrincipalFactory<MyUser>, MyUserClaimsPrincipalFactory>();
+builder.Services.AddScoped<IUserClaimsPrincipalFactory<MyUser>,
+    MyUserClaimsPrincipalFactory>();
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options => 
+    options.TokenLifespan = TimeSpan.FromHours(3));
 
 builder.Services.ConfigureApplicationCookie(options => 
     options.LoginPath = "/Home/Login");

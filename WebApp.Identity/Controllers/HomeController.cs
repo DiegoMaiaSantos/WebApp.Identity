@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using WebApp.Identity.Models;
 
 namespace WebApp.Identity.Controllers
@@ -14,7 +15,7 @@ namespace WebApp.Identity.Controllers
         private readonly IUserClaimsPrincipalFactory<MyUser> _userClaimsPrincipalFactory;
         private readonly SignInManager<MyUser> _signInManager;
 
-        public HomeController(UserManager<MyUser> userManager, 
+        public HomeController(UserManager<MyUser> userManager,
             IUserClaimsPrincipalFactory<MyUser> userClaimsPrincipalFactory,
             SignInManager<MyUser> signInManager)
         {
@@ -88,6 +89,78 @@ namespace WebApp.Identity.Controllers
         [HttpGet]
         public async Task<IActionResult> Register()
         {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user != null)
+                {
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                    var resetURL = Url.Action("ResetPassword", "Home",
+                        new
+                        {
+                            token = token,
+                            email = model.Email
+                        }, Request.Scheme);
+
+                    System.IO.File.WriteAllText("resetLink.txt", resetURL);
+
+                    return View("Success");
+                }
+                else
+                {
+                    string error = "- Os dados inseridos não foram encontrados!";
+
+                    return View("Error", error);
+                }
+            }
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string token, string email)
+        {
+            return View(new ResetPasswordModel { Token = token, Email = email });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user != null)
+                {
+                    var result = await _userManager.ResetPasswordAsync(user, 
+                        model.Token, model.Password);
+
+                    if (!result.Succeeded)
+                    {
+                        foreach(var error in result.Errors)
+                        {
+                            ModelState.AddModelError("", error.Description);
+                        }
+                        return View();
+                    }
+
+                    return View("Success");
+                }
+
+                ModelState.AddModelError("", "Invalid Request");
+            }
             return View();
         }
 
